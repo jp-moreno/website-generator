@@ -7,8 +7,9 @@
 #define BUFFER_SIZE 250
 
 void usage(){
-    printf("webgen requires a style sheet, an input folder, and an output folder\nexample: webgen -s style.css -i in -o out\n");
+    printf("webgen requires a style sheet, a post header, a post footer, an index header, an index footer, a an input folder, and an output folder\nexample: webgen -s style.css -i in -o out -h header.html -f footer.html -a iheader.html -b ifooter.html\n");
 }
+
 
 typedef struct Files Files;
 
@@ -29,7 +30,12 @@ struct Post{
     char *outfile_path;
 };
 
-void generateHeader(Post post){
+void generateHeader(Post post, FILE *f){
+    rewind(f);
+    char buff[BUFFER_SIZE];
+    while(fgets (buff, BUFFER_SIZE, f)!=NULL){
+        fprintf(post.outfile, buff);
+    }
     fprintf(post.outfile, "<h2>");
     fprintf(post.outfile, post.name);
     fprintf(post.outfile, "</h2>");
@@ -50,13 +56,35 @@ void generateBody(Post post){
     }
 }
 
-void generateFooter(Post post){
-    fprintf(post.outfile, "<p><a href=index.html"">Go back</p>");
+void generateFooter(Post post, FILE *f){
+    char buff[BUFFER_SIZE];
+    rewind(f);
+    fprintf(post.outfile, "<p><a href=index.html"">Go back</a></p>");
+    while(fgets (buff, BUFFER_SIZE, f)!=NULL){
+        fprintf(post.outfile, buff);
+    }
+}
+
+void generateIndexHeader(FILE *fIndex, FILE *f){
+    char buff[BUFFER_SIZE];
+    rewind(f);
+    while(fgets (buff, BUFFER_SIZE, f)!=NULL){
+        fprintf(fIndex, buff);
+    }
 }
 
 void addToIndex(Post post, FILE *fIndex){
     fprintf(fIndex, "<li><a href=\"%d%s\">%s - %s</a></li>", post.id, ".html", post.name, post.date);
 }
+
+void generateIndexFooter(FILE *fIndex, FILE *f){
+    char buff[BUFFER_SIZE];
+    rewind(f);
+    while(fgets (buff, BUFFER_SIZE, f)!=NULL){
+        fprintf(fIndex, buff);
+    }
+}
+
 
 void addFile(Files *files, FILE *f){
     if(files->file==NULL){
@@ -79,19 +107,36 @@ int getPostId(){
 }
 
 int main(int argc, char **argv){
-
+    printf("%d\n", argc);
+    if(argc!=15){
+        usage();
+        return 1;
+    }
 
     int opt;
 
-    FILE *styleptr;
+    
+    FILE *styleptr, *fheader, *ffooter,*fiheader, *fifooter;
     DIR *inDir;
     DIR *outDir;
     char inName[250], outName[250];
 
     struct dirent *pDirent;
 
-    while((opt=getopt(argc, argv, ":s:i:o:"))!=-1){
+    while((opt=getopt(argc, argv, ":s:i:o:a:b:f:h:"))!=-1){
         switch(opt){
+            case 'a':
+                fiheader = fopen(optarg, "r");
+                break;
+            case 'b':
+                fifooter = fopen(optarg, "r");
+                break;
+            case 'f':
+                ffooter = fopen(optarg, "r");
+                break;
+            case 'h':
+                fheader = fopen(optarg, "r");
+                break;
             case 's':
                 styleptr = fopen(optarg, "r");
                 break;
@@ -110,6 +155,12 @@ int main(int argc, char **argv){
                 break;
         }
     }
+
+    if(fifooter==NULL||fiheader==NULL||ffooter==NULL||fheader==NULL){
+        printf("null!");
+        return 1;
+    }
+        
 
     printf("inDir %s, outDir %s\n", inName, outName);
 
@@ -175,13 +226,16 @@ int main(int argc, char **argv){
     strcat(dest, "/");
     strcat(dest, "index.html");
     FILE *fIndex = fopen(dest, "w");
-
+    printf("generating\n");
+    
+    generateIndexHeader(fIndex, fiheader);
     for(int i=0; i<n;i++){
-        generateHeader(posts[i]);
+        generateHeader(posts[i], fheader);
         generateBody(posts[i]);
-        generateFooter(posts[i]);
+        generateFooter(posts[i], ffooter);
         addToIndex(posts[i], fIndex);
     }
+    generateIndexFooter(fIndex, fifooter);
 
     //make index
 
