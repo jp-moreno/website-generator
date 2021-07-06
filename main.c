@@ -3,6 +3,7 @@
 #include <dirent.h>
 #include <string.h>
 #include <stdlib.h>
+#include <limits.h>
 
 #define BUFFER_SIZE 250
 
@@ -25,6 +26,7 @@ struct Post{
     char subtitle[250];
     char img[250];
     char date[250];
+    int number;
     FILE *infile;
     FILE *outfile;
     char *outfile_path;
@@ -214,9 +216,10 @@ int main(int argc, char **argv){
         fgets(posts[t].name, 250, f);
         fgets(posts[t].date, 250, f);
         fgets(posts[t].img, 250, f);
+        memset(str, '\0', 10);
+        fgets(str, 10, f);
+        posts[t].number = strtol(str, NULL, 10);
         fgets(posts[t].subtitle, 250, f);
-        //while(fgets (buff, BUFFER_SIZE, f)!=NULL)
-        //    puts(buff);
         curr = curr->next;
         t++;
     }
@@ -227,13 +230,23 @@ int main(int argc, char **argv){
     strcat(dest, "index.html");
     FILE *fIndex = fopen(dest, "w");
     printf("generating\n");
+
+    int curr_number = INT_MAX;
+    Post *p;
+    p = &posts[0];
     
     generateIndexHeader(fIndex, fiheader);
     for(int i=0; i<n;i++){
-        generateHeader(posts[i], fheader);
-        generateBody(posts[i]);
-        generateFooter(posts[i], ffooter);
-        addToIndex(posts[i], fIndex);
+        for(int j=0; j<n;j++){
+            if(posts[j].number < curr_number && (posts[j].number > p->number||p->number==curr_number)){
+                p = &posts[j];
+            }
+        }
+        curr_number = p->number;
+        generateHeader(*p, fheader);
+        generateBody(*p);
+        generateFooter(*p, ffooter);
+        addToIndex(*p, fIndex);
     }
     generateIndexFooter(fIndex, fifooter);
 
