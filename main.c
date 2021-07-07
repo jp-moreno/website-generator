@@ -47,6 +47,7 @@ void generateHeader(Post post, FILE *f){
     fprintf(post.outfile, "<h3>");
     fprintf(post.outfile, post.date);
     fprintf(post.outfile, "</h3>");
+    fprintf(post.outfile,"<img class=\"post-img\"src=\"%s\">", post.img);
 }
 
 void generateBody(Post post){
@@ -61,7 +62,6 @@ void generateBody(Post post){
 void generateFooter(Post post, FILE *f){
     char buff[BUFFER_SIZE];
     rewind(f);
-    fprintf(post.outfile, "<p><a href=index.html"">Go back</a></p>");
     while(fgets (buff, BUFFER_SIZE, f)!=NULL){
         fprintf(post.outfile, buff);
     }
@@ -76,7 +76,7 @@ void generateIndexHeader(FILE *fIndex, FILE *f){
 }
 
 void addToIndex(Post post, FILE *fIndex){
-    fprintf(fIndex, "<li><a href=\"%d%s\">%s - %s</a></li>", post.id, ".html", post.name, post.date);
+    fprintf(fIndex, "<li><img class=\"thumbnail\" src=\"%s\"><a href=\"%d%s\">%s - %s</a></li>", post.img, post.id, ".html", post.name, post.date);
 }
 
 void generateIndexFooter(FILE *fIndex, FILE *f){

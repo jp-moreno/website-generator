@@ -1,0 +1,12 @@
+.thumbnail{
+    max-height: 50px;
+}
+
+.post-img{
+    max-height: 200px;
+}
+
+.container{
+    margin:10%;
+    margin-top:5%;
+}
