@@ -32,30 +32,26 @@ struct Post{
     char *outfile_path;
 };
 
+void printTag(FILE *f, char *tag, char *content){
+	fprintf(f, "<%s>%s</%s>", tag, content, tag);
+}
+
 void generateHeader(Post post, FILE *f){
     rewind(f);
     char buff[BUFFER_SIZE];
     while(fgets (buff, BUFFER_SIZE, f)!=NULL){
         fprintf(post.outfile, buff);
     }
-    fprintf(post.outfile, "<h2>");
-    fprintf(post.outfile, post.name);
-    fprintf(post.outfile, "</h2>");
-    fprintf(post.outfile, "<h3>");
-    fprintf(post.outfile, post.subtitle);
-    fprintf(post.outfile, "</h3>");
-    fprintf(post.outfile, "<h3>");
-    fprintf(post.outfile, post.date);
-    fprintf(post.outfile, "</h3>");
+    printTag(post.outfile, "h2", post.name);
+    printTag(post.outfile, "h3", post.subtitle);
+    printTag(post.outfile, "h3", post.date);
     fprintf(post.outfile,"<img class=\"post-img\"src=\"%s\">", post.img);
 }
 
 void generateBody(Post post){
     char buff[BUFFER_SIZE];
     while(fgets (buff, BUFFER_SIZE, post.infile)!=NULL){
-        fprintf(post.outfile, "<p>");
-        fprintf(post.outfile, buff);
-        fprintf(post.outfile, "</p>");
+	printTag(post.outfile, "p", buff);
     }
 }
 
